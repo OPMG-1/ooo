@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가로와 세로 막대기</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .bar-container {
+            position: relative;
+            width: 1000px; /* 가로 막대기의 길이 */
+            height: 120px; /* 가로 막대기의 두께 */
+        }
+        .horizontal-bar {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            border-radius: 20px;
+        }
+        .vertical-bar {
+            position: absolute;
+            width: 15px; /* 세로 막대기의 너비 */
+            height: 100%; /* 세로 막대기의 길이 */
+            background-color: #666;
+            border-radius: 15px;
+            animation: move-vertical 5s infinite ease-in-out;
+            z-index: 2; /* 세로 막대기를 상자들보다 앞에 배치 */
+        }
+
+        @keyframes move-vertical {
+            0% {
+                left: 0;
+            }
+            50% {
+                left: calc(100% - 30px); /* 가로 막대기 끝까지 */
+            }
+            100% {
+                left: 0;
+            }
+        }
+
+        .text-row {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* 칸 간의 간격을 균등하게 */
+            z-index: 1; /* 텍스트 상자는 세로 막대기 뒤에 배치 */
+        }
+        .cell {
+            height: 80px; /* 모든 상자의 높이는 동일 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #555;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+        }
+        .cell.wide {
+            width: 180px; /* 1번, 9번 칸 */
+        }
+        .cell.medium {
+            width: 150px; /* 2번, 8번 칸 */
+        }
+        .cell.narrow {
+            width: 80px; /* 3번, 7번 칸 */
+        }
+        .cell.slim {
+            width: 40px; /* 4번, 5번, 6번 칸 */
+        }
+
+        .output {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 10px;
+            font-size: 24px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bar-container">
+        <div class="horizontal-bar"></div>
+        <div class="vertical-bar"></div> <!-- 세로 막대기 -->
+        <div class="text-row">
+            <div class="cell wide">0</div>    <!-- 1번 칸 -->
+            <div class="cell medium">1</div>  <!-- 2번 칸 -->
+            <div class="cell narrow">2</div>  <!-- 3번 칸 -->
+            <div class="cell slim">1</div>    <!-- 4번 칸 -->
+            <div class="cell slim">3</div>    <!-- 5번 칸 -->
+            <div class="cell slim">1</div>    <!-- 6번 칸 -->
+            <div class="cell narrow">2</div>  <!-- 7번 칸 -->
+            <div class="cell medium">1</div>  <!-- 8번 칸 -->
+            <div class="cell wide">0</div>    <!-- 9번 칸 -->
+        </div>
+    </div>
+
+    <div class="output" id="output">현재 위치한 숫자: </div>
+
+    <script>
+        const verticalBar = document.querySelector('.vertical-bar');
+        const cells = document.querySelectorAll('.cell');
+        const output = document.getElementById('output');
+
+        // 각 칸의 위치를 배열로 저장
+        const cellPositions = [];
+        let totalWidth = 0;
+
+        cells.forEach(cell => {
+            const width = cell.offsetWidth;
+            cellPositions.push(totalWidth);
+            totalWidth += width;
+        });
+
+        // 화면 클릭 시 세로 막대기 애니메이션 제어
+        let isPaused = false;
+
+        document.body.addEventListener('click', () => {
+            if (!isPaused) {
+                // 애니메이션을 멈추고, 현재 위치를 고정
+                verticalBar.style.animationPlayState = 'paused';
+                isPaused = true;
+            } else {
+                // 애니메이션을 멈추고 3초 후에 다시 시작
+                setTimeout(() => {
+                    verticalBar.style.animation = 'none'; // 애니메이션 리셋
+                    verticalBar.offsetHeight; // 리셋 후 강제로 재랜더링
+                    verticalBar.style.animation = 'move-vertical 5s infinite ease-in-out'; // 애니메이션 재시작
+                    isPaused = false;
+                }, 3000); // 3초 후에 다시 시작
+            }
+
+            // 세로 막대기의 left 값을 가져와서 해당 위치의 숫자 찾기
+            const verticalBarLeft = verticalBar.offsetLeft;
+            for (let i = 0; i < cellPositions.length; i++) {
+                if (verticalBarLeft >= cellPositions[i] && verticalBarLeft < (cellPositions[i] + cells[i].offsetWidth)) {
+                    output.textContent = '현재 위치한 숫자: ' + cells[i].textContent;
+                    break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
